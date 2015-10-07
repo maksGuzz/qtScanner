@@ -17,27 +17,25 @@ void CommandReader::readCommand(QDataStream &in)
   if(command=="loadsignatures")
     {
       qDebug()<<"Loading";
-      /*QDirIterator it("/home/mguzeev/Downloads", QStringList() << "*.*", QDir::Files, QDirIterator::Subdirectories);
-      while (it.hasNext()) {
-          qDebug() << it.next();*/
-
-      dirSize("/home/mguzeev/Downloads");
     }
   if(command=="setscanoptions")
     {
       qDebug()<<"setscanoptions";
     }
-  if(command=="lazyscan")
+  if(command=="lazy")
     {
-      qDebug()<<"setscanoptions";
+      qDebug()<<"lazyscan";
+      emit startScan();
     }
-  if(command=="startscan")
+  if(command=="start")
     {
       qDebug()<<"startscan";
+      emit startScan();
     }
-  if(command=="stopscan")
+  if(command=="stop")
     {
       qDebug()<<"stopscan";
+      emit stopScan();
     }
   if(command=="getstatus")
     {
@@ -51,36 +49,3 @@ void CommandReader::readCommand(QDataStream &in)
 }
 
 
-long long CommandReader::dirSize(const QString str)
-{
-    long long sizex = 0;
-    QFileInfo str_info(str);
-    if (str_info.isDir())
-    {
-    QDir dir(str);
-    QStringList ext_list;
-    dir.setFilter(QDir::Files | QDir::Dirs |  QDir::Hidden | QDir::NoSymLinks);
-    QFileInfoList list = dir.entryInfoList();
-    for (int i = 0; i < list.size(); ++i)
-            {
-                QFileInfo fileInfo = list.at(i);
-                if ((fileInfo.fileName() != ".") && (fileInfo.fileName() != ".."))
-                {
-                    if(fileInfo.isDir())
-                    {
-                        sizex += this->dirSize(fileInfo.filePath());
-                        QApplication::processEvents();
-                    }
-                    else
-                    {
-                        sizex += fileInfo.size();
-                        QApplication::processEvents();
-                    }
-
-                }
-                qDebug()<<"Sz: "<<sizex;
-            }
-
-    }
-    return sizex;
-}

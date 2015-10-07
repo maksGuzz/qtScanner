@@ -16,9 +16,11 @@ TEMPLATE = app
 SOURCES += main.cpp \
     server.cpp \
     commandreader.cpp \
-    strategyselector.cpp
+    strategyselector.cpp \
+    algorithmlazy.cpp
 
 HEADERS += \
     server.h \
     commandreader.h \
-    strategyselector.h
+    strategyselector.h \
+    algorithmlazy.h

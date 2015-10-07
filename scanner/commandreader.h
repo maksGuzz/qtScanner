@@ -11,6 +11,8 @@ public:
 
 signals:
   void exit();
+  void startScan();
+  void stopScan();
 
 public slots:
   void readCommand(QDataStream &in);

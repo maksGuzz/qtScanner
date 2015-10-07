@@ -70,7 +70,7 @@
 
  void Server::sendToUi(QString str)
  {
-   qDebug()<<"SRV Tx: "<<str;
+   //qDebug()<<"SRV Tx: "<<str;
      QByteArray block;
      QDataStream out(&block, QIODevice::WriteOnly);
      out.setVersion(QDataStream::Qt_4_0);
