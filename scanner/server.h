@@ -1,11 +1,6 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <QDialog>
-
-
- #include <QLabel>
- #include <QPushButton>
  #include <QLocalServer>
 
  class Server : public QObject
@@ -15,6 +10,8 @@
  public:
      Server(QObject *parent = 0);
 
+ signals:
+     void uicommand(QDataStream &in);
  private slots:
      void uiConnected();
      void uiDisonnected();

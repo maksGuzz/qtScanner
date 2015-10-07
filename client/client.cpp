@@ -13,7 +13,7 @@ Client::Client(QWidget *parent)
 
     hostLabel->setBuddy(hostLineEdit);
 
-    statusLabel = new QLabel(tr("Waiting for connection."));
+    statusLabel = new QLabel(tr("Waiting for connection.\n\n"));
 
     connectServerButton = new QPushButton(tr("Connect"));
     connectServerButton->setDefault(true);

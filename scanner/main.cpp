@@ -4,12 +4,16 @@
  #include <stdlib.h>
 
  #include "server.h"
+#include "commandreader.h"
 
  int main(int argc, char *argv[])
  {
      QApplication app(argc, argv);
      Server server;
-     qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
+     CommandReader reader;
+
+     QObject::connect(&server, SIGNAL(uicommand(QDataStream&)), &reader, SLOT(readCommand(QDataStream&)));
+
      return app.exec();
  }
  /*

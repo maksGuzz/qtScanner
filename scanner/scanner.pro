@@ -14,7 +14,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
-    server.cpp
+    server.cpp \
+    commandreader.cpp \
+    strategyselector.cpp
 
 HEADERS += \
-    server.h
+    server.h \
+    commandreader.h \
+    strategyselector.h
