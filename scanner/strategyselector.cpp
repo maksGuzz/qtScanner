@@ -9,6 +9,7 @@
 
 StrategySelector::StrategySelector(QObject *parent) :
   QObject(parent)
+  , lazyThread(NULL)
 {
   //fake signatures
   signatures.insert("gif", "GIF");
@@ -28,10 +29,11 @@ void StrategySelector::startScan()
   //if alot of files: one thread-one file with all signatures
   //one file: check size - small: one thread, big - thread pool each thread-piece of signatures
   // ...
-  if(lazyThread)
+  if(lazyThread!=NULL)
     {
       qDebug()<<"busy";
       emit stringForUi("busy");
+      return;
     }
   lazyScan();
 }

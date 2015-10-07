@@ -18,7 +18,7 @@ void AlgorithmLazy::setSignatures(QList<QByteArray> sig)
 
 void AlgorithmLazy::processSearchBuffer(QByteArray blob)
 {
-  qDebug()<<"BLOB!";
+  //qDebug()<<"BLOB!";
   QList<QByteArray>::iterator it;
   for(it=signatures.begin(); it!= signatures.end(); ++it)
     {
@@ -41,7 +41,7 @@ void AlgorithmLazy::process()
           qDebug()<< "--- FINISHING";
           break;
         }
-      qDebug()<<"--fSz: "<<it.fileInfo().size()<<", "<<it.filePath();
+      //qDebug()<<"--fSz: "<<it.fileInfo().size()<<", "<<it.filePath();
 
       QFile file(it.filePath());
       if(!file.open(QIODevice::ReadOnly))
@@ -61,7 +61,7 @@ void AlgorithmLazy::process()
       else
         {
           QByteArray blob;
-          while ((blob = file.read(chunkSz)) > 0)
+          while ((blob = file.read(chunkSz*10)) > 0)
             {
               processSearchBuffer(blob);
               if(++cnt%100==0)
@@ -74,7 +74,7 @@ void AlgorithmLazy::process()
 
       emit progress(it.fileInfo().size());
 
-      QThread::msleep(10);
+      //QThread::msleep(10);
       it.next();
       if(++cnt%100==0)
         qApp->processEvents();
