@@ -11,6 +11,8 @@ class StrategySelector : public QObject
 public:
   explicit StrategySelector(QObject *parent = 0);
 
+  void readFileListAndSort(const QString &path);
+
 signals:
   void stringForUi(QString msg);
   void stopWorker();
@@ -19,18 +21,24 @@ public slots:
   void startScan();
   void stopScan();
   void errorHandler(QString error);
-  void scanProgress(int);
-  void scanEnded();
-  void sigFound(QByteArray);
+  void scanProgress(QString, int);
+  void lazyScanEnded();
+  void poolScanEnded();
+  void sigFound(QString, QByteArray);
 
 private:
   //long long dirSize(const QString str);
   void lazyScan();
+  void threadedScan();
 
 private:
-  QList<QString> files;
-  QMap<QByteArray, QString> signatures;//QByteArray QByteArray::fromHex(const QByteArray & hexEncoded) static
+  QList<QString> largeFiles; // for ThreadPool strategy (fSz >= 16k), one file at a time, each thread with a chunk of signatures
+  QList<QString> smallFiles; // for lazy strategy, single thread, read all file at once
+
+  QMap<QByteArray, QString> signatures;
   QThread* lazyThread;
+  QThread* poolThread;
+
 };
 
 #endif // STRATEGYSELECTOR_H

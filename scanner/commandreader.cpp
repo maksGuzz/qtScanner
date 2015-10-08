@@ -22,11 +22,6 @@ void CommandReader::readCommand(QDataStream &in)
     {
       qDebug()<<"setscanoptions";
     }
-  if(command=="lazy")
-    {
-      qDebug()<<"lazyscan";
-      emit startScan();
-    }
   if(command=="start")
     {
       qDebug()<<"startscan";
@@ -37,7 +32,7 @@ void CommandReader::readCommand(QDataStream &in)
       qDebug()<<"stopscan";
       emit stopScan();
     }
-  if(command=="getstatus")
+  if(command=="status")
     {
       qDebug()<<"getstaus";
     }

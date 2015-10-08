@@ -9,6 +9,7 @@
  #include <QLineEdit>
  #include <QPushButton>
  #include <QLocalSocket>
+#include <QListWidget>
 
  class Client : public QDialog
  {
@@ -26,7 +27,7 @@
  private:
      QLabel *hostLabel;
      QLineEdit *hostLineEdit;
-     QLabel *statusLabel;
+     QListWidget *statusLabel;
      QPushButton *connectServerButton;
      QPushButton *sendServerButton;
      QPushButton *quitButton;

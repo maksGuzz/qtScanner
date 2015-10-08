@@ -2,6 +2,8 @@
 #include <QtNetwork>
 #include <QGridLayout>
 #include <QMessageBox>
+#include <QDebug>
+
 
 #include "client.h"
 
@@ -9,11 +11,11 @@ Client::Client(QWidget *parent)
     : QDialog(parent)
 {
     hostLabel = new QLabel(tr("&Server name:"));
-    hostLineEdit = new QLineEdit("scanner");
+    hostLineEdit = new QLineEdit("start");
 
     hostLabel->setBuddy(hostLineEdit);
 
-    statusLabel = new QLabel(tr("Waiting for connection.\n\n"));
+    statusLabel = new QListWidget();//tr("Waiting for connection.\n\n"));
 
     connectServerButton = new QPushButton(tr("Connect"));
     connectServerButton->setDefault(true);
@@ -33,6 +35,8 @@ Client::Client(QWidget *parent)
             this, SLOT(connectServer()));
     connect(sendServerButton, SIGNAL(clicked()),
             this, SLOT(sendCommand()));
+    connect(sendServerButton, SIGNAL(clicked()),
+            statusLabel, SLOT(clear()));
     connect(quitButton, SIGNAL(clicked()), this, SLOT(close()));
     connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
     connect(socket, SIGNAL(error(QLocalSocket::LocalSocketError)),
@@ -64,7 +68,7 @@ void Client::connectServer()
 {
     connectServerButton->setEnabled(false);
     socket->abort();
-    socket->connectToServer(hostLineEdit->text());
+    socket->connectToServer("scanner");
 }
 
 void Client::readData()
@@ -77,8 +81,9 @@ void Client::readData()
 
     QString resp;
     in >> resp;
+    qDebug()<<resp;
 
-    statusLabel->setText(resp);
+    statusLabel->addItem(resp);
 }
 
 void Client::displayError(QLocalSocket::LocalSocketError socketError)

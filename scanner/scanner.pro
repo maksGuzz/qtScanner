@@ -17,10 +17,14 @@ SOURCES += main.cpp \
     server.cpp \
     commandreader.cpp \
     strategyselector.cpp \
-    algorithmlazy.cpp
+    lazystrategy.cpp \
+    threadpoolstrategy.cpp \
+    runnableseeker.cpp
 
 HEADERS += \
     server.h \
     commandreader.h \
     strategyselector.h \
-    algorithmlazy.h
+    lazystrategy.h \
+    threadpoolstrategy.h \
+    runnableseeker.h
