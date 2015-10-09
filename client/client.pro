@@ -11,6 +11,11 @@ TARGET = client
 TEMPLATE = app
 
 
-HEADERS       = client.h
+HEADERS       = client.h \
+    mainwindow.h
 SOURCES       = client.cpp \
-                 main.cpp
+                 main.cpp \
+    mainwindow.cpp
+
+FORMS += \
+    mainwindow.ui
