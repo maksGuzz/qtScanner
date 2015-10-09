@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+ #include <qlocalsocket.h>
 
 namespace Ui {
   class MainWindow;
@@ -16,12 +17,23 @@ public:
   ~MainWindow();
 
 private slots:
+  void connectServer();
+  void readData();
+  void displayError(QLocalSocket::LocalSocketError socketError);
+  void sendCommand(QByteArray cmd);
   void on_pushButton_6_clicked();
 
   void on_pushButton_7_clicked();
 
+  void on_pushButton_3_clicked();
+
+  void on_pushButton_2_clicked();
+
+  void on_pushButton_5_clicked();
+
 private:
   Ui::MainWindow *ui;
+  QLocalSocket *socket;
 };
 
 #endif // MAINWINDOW_H
