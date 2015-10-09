@@ -160,7 +160,7 @@ void StrategySelector::sigFound(QString fname, QByteArray sig)
   QString formatted = QString("%1 - %2").arg(signatures[sig]).arg(fname);
   qDebug()<<"            FOUND!!";
   qDebug()<<"                "<<formatted;
-  //emit sendToUiString(formatted);
+  emit sendToUiInfect(fname, signatures[sig]);
 }
 
 void StrategySelector::parseSignatures(QString signFilename)

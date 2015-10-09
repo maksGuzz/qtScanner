@@ -15,6 +15,7 @@ public:
 
 signals:
   void sendToUiString(QString msg);
+  void sendToUiInfect(QString, QString);
   void stopWorker();
   void progressForUi(QString,int);
   void startScanInfo(int);

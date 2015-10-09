@@ -158,7 +158,6 @@ void MainWindow::parseResponse(QDataStream &in)
         QVariant v(progress);
         ui->listWidget->addItem(v.toString()+file);
         ui->progressBar->setValue(progress);
-        qDebug()<<resp<<file<<progress;
         continue;
       }
     if(resp == "info")
@@ -168,9 +167,17 @@ void MainWindow::parseResponse(QDataStream &in)
         //qDebug()<<resp<<str;
         ui->listWidget->addItem(str);
       }
-    QListWidgetItem *item = new QListWidgetItem(resp, ui->listWidget);
-    //item->setBackgroundColor(QColor("red"));
-    ui->listWidget->scrollToItem(item);
-    qApp->processEvents();
+    if(resp == "infected")
+      {
+        QString file;
+        QString virus;
+        in >> file;
+        in >> virus;
+        QListWidgetItem *item = new QListWidgetItem(QString("INFECTED\nFILE: %1\nVIR : %2").arg(file).arg(virus), ui->listWidget);
+        item->setBackgroundColor(QColor("red"));
+        ui->listWidget->scrollToItem(item);
+        continue;
+      }
+    //qApp->processEvents();
   }
 }

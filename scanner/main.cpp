@@ -21,6 +21,7 @@
      QObject::connect(&strategy, SIGNAL(sendToUiString(QString)), &server, SLOT(sendToUiString(QString)));
      QObject::connect(&strategy, SIGNAL(progressForUi(QString,int)), &server, SLOT(sendToUiProgress(QString,int)));
      QObject::connect(&strategy, SIGNAL(startScanInfo(int)), &server, SLOT(sendScanInfo(int)));
+     QObject::connect(&strategy, SIGNAL(sendToUiInfect(QString, QString)), &server, SLOT(sendInfected(QString, QString)));
 
      return app.exec();
  }

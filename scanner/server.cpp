@@ -105,3 +105,16 @@
    clientConnection->write(block);
    clientConnection->flush();
  }
+
+ void Server::sendInfected(QString file, QString sig)
+ {
+   QByteArray block;
+   QDataStream out(&block, QIODevice::WriteOnly);
+   out.setVersion(QDataStream::Qt_4_0);
+   out << QString("infected");
+   out << file;
+   out << sig;
+
+   clientConnection->write(block);
+   clientConnection->flush();
+ }

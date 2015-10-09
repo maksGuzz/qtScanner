@@ -20,6 +20,7 @@
      void sendToUiString(QString str);
      void sendToUiProgress(QString file, int perc);
      void sendScanInfo(int);
+     void sendInfected(QString, QString);
 
      void uiData();
  private:
