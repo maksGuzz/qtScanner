@@ -51,6 +51,7 @@ Client::Client(QWidget *parent)
 
     setWindowTitle(tr("Scaner Client"));
     hostLineEdit->setFocus();
+    //QString directory_path = QFileDialog::getExistingDirectory(this, tr("Select your music directory"), QDir::currentPath());
 }
 
 void Client::sendCommand()
@@ -78,12 +79,14 @@ void Client::readData()
 
     if (in.atEnd())
         return;
+    while(!in.atEnd())
+    {
+      QString resp;
+      in >> resp;
+      qDebug()<<resp;
 
-    QString resp;
-    in >> resp;
-    qDebug()<<resp;
-
-    statusLabel->addItem(resp);
+      statusLabel->addItem(resp);
+    }
 }
 
 void Client::displayError(QLocalSocket::LocalSocketError socketError)

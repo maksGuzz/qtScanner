@@ -38,6 +38,7 @@ private:
   QMap<QByteArray, QString> signatures;
   QThread* lazyThread;
   QThread* poolThread;
+  QString path;
 
 };
 

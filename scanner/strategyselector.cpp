@@ -15,20 +15,19 @@ StrategySelector::StrategySelector(QObject *parent) :
   , poolThread(NULL)
 {
   //fake signatures
-  /*signatures.insert("gif", "GIF");
-  signatures.insert("GIF", "GIF");
-  signatures.insert("<?php", "PHP");
-  signatures.insert("ELF", "ELF");
-  signatures.insert("SIG", "SIG");
-  signatures.insert("123", "Sig1");
-  signatures.insert("5432325", "Sig2");
-  signatures.insert("fds", "Sig3");*/
-  signatures.insert(QByteArray::fromHex("b6b7b8b9bac2"), "JPEG");
   signatures.insert(QByteArray::fromHex("c9ff30006893"), "APK");
-  signatures.insert(QByteArray::fromHex("005a 015a 019e 6800 00ab d2ae 0000 00"), "MARGO ZIP");
-  signatures.insert(QByteArray::fromHex("98b6 959c 2a00 e998 e4e7 1524"), "ZWAY TGZ");
-  // grep -obUaP "\xb6\xb7\xb8\xb9\xba\xc2"
-  //qDebug()<<"Sz from hex: "<<QByteArray::fromHex("c9ff30006893").size();
+  signatures.insert(QByteArray::fromHex("005a015a019e680000abd2ae000000"), "MARGO ZIP");
+  signatures.insert(QByteArray::fromHex("98b6959c2a00e998e4e71524"), "ZWAY TGZ");
+  signatures.insert(QByteArray::fromHex("030000000000000040282e00"), "BTH-D");
+  signatures.insert(QByteArray::fromHex("fcff498bbff0000000488d3531670000"),"APACHE2");
+  signatures.insert(QByteArray::fromHex("f3cf 32a1 e9c9 9238 01c3 9d26 f8e8 10fa 963c 1867 2c88 b083 16ea b787 219d 01d7"), "LG-SMART-PNG");
+  signatures.insert(QByteArray::fromHex("8c5a6cc01ef89c9750660d7d05d4378aac89a44ffbd30522e2ee63d4e20d7ce9f1f3d17bf0a635b44de6"),"aero@2");
+  signatures.insert(QByteArray::fromHex("00 6564 6974 6162 6c65 2d74 6162 6c65 2d6d 6173 7465 722f 6578 7465 726e 616c 2f67 6f6f 676c 652d 636f 6465 2d70 7265 74"),"ED-TBL-ZIP");
+  signatures.insert(QByteArray::fromHex("b8 9929 a796 a9a9 1572 8f9d db51 2354 a0"), "DALTON HW Duc");
+  signatures.insert(QByteArray::fromHex("af49 1212 082c d3b6 29ac2869 3c66 0063 1d"), "Kompex-ZIP");
+  signatures.insert(QByteArray::fromHex("83 830a 0f60 3a6b d3226e27 e77d 4660 f208 6f67 91f6 6998 f6ea3225 b979 94e9 b34a 25f5 3b71 38ed 1a6a407a cccb 5786 e341"), "F4-ISO");
+
+  path = "/home/mguzeev/Downloads";
 }
 
 void StrategySelector::readFileListAndSort(const QString &path)
@@ -36,29 +35,32 @@ void StrategySelector::readFileListAndSort(const QString &path)
   emit stringForUi("Scanning files");
   qDebug()<<"read files "<<path;
   int cnt=0;
-  QDirIterator it(path, QStringList() << "*.*", QDir::Files, QDirIterator::Subdirectories);
+  QStringList mask;
+  mask << "*.tgz";
+  QDirIterator it(path, QDir::Files | QDir::Hidden | QDir::NoSymLinks, QDirIterator::Subdirectories);
   while (it.hasNext())
     {
-      //qDebug()<<it.fileName();
-      if(it.fileInfo().size()<=10 || it.filePath()=="") // smallest signature
+      it.next();
+      qDebug()<<it.fileName()<< ", "<<it.fileInfo().size();
+      if(it.fileInfo().size()<=100 || it.filePath()=="") // smallest signature
         {
-          it.next();
+          qDebug()<<"IGNORING";
           continue; //dir or ".." or "."
         }
       if(it.fileInfo().size() < 0x4000) // 16K
         {
+          qDebug()<<"SMALL";
           //qDebug()<<"--fSz: "<<it.fileInfo().size()<<", "<<it.fileName() << " small";
           smallFiles << it.fileInfo().filePath();
         }
       else
         {
+          qDebug()<<"LARGE";
           //qDebug()<<"--fSz: "<<it.fileInfo().size()<<", "<<it.fileName() << " LARGE!";
           largeFiles << it.fileInfo().filePath();
         }
 
       //emit stringForUi(it.fileInfo().fileName());
-      //QThread::msleep(10);
-      it.next();
       if(++cnt%100==0)
         qApp->processEvents();
     }
@@ -67,11 +69,16 @@ void StrategySelector::readFileListAndSort(const QString &path)
 
 void StrategySelector::startScan()
 {
+  if(poolThread || lazyThread)
+    {
+      emit stringForUi("busy both");
+      return;
+    }
   largeFiles.clear();
   smallFiles.clear();
   emit stringForUi("Scanning directory");
   qDebug()<<"read files";
-  readFileListAndSort("/home/mguzeev");
+  readFileListAndSort(path);
   qDebug()<<"start scan end";
   emit stringForUi("Scanning directory end");
   qDebug()<<"Cnt: LARGE " << largeFiles.size() << ", small "<<smallFiles.count();
@@ -79,12 +86,6 @@ void StrategySelector::startScan()
   if(largeFiles.size())
     {
       // run threaded strategy
-      if(poolThread!=NULL)
-          {
-            qDebug()<<"busy";
-            emit stringForUi("busy");
-            return;
-          }
         emit stringForUi("Scanning LARGE fileList");
         threadedScan();
     }
@@ -92,12 +93,6 @@ void StrategySelector::startScan()
   if(smallFiles.size())
     {
       // run one thread strategy
-      if(lazyThread!=NULL)
-          {
-            qDebug()<<"busy";
-            emit stringForUi("busy");
-            return;
-          }
         emit stringForUi("Scanning SMALL fileList");
         lazyScan();
     }
@@ -127,21 +122,21 @@ void StrategySelector::scanProgress(QString file, int progress)
 void StrategySelector::lazyScanEnded()
 {
   //qApp->processEvents();
-  qDebug()<<"scanEnded: 1";
+  qDebug()<<"scanEnded: lazy";
   /*lazyThread->quit();
   lazyThread->wait();*/
   lazyThread=NULL;
-  emit stringForUi("Scan fileList ended");
+  emit stringForUi("Scan fileList ended lazy");
 }
 
 void StrategySelector::poolScanEnded()
 {
   //qApp->processEvents();
-  qDebug()<<"scanEnded: 1";
+  qDebug()<<"scanEnded: pool";
   /*lazyThread->quit();
   lazyThread->wait();*/
-  lazyThread=NULL;
-  emit stringForUi("Scan fileList ended");
+  poolThread=NULL;
+  emit stringForUi("Scan fileList ended pool");
 }
 
 void StrategySelector::sigFound(QString fname, QByteArray sig)
@@ -166,7 +161,7 @@ void StrategySelector::threadedScan()
   poolThread = new QThread;
   ThreadPoolStrategy* worker = new ThreadPoolStrategy();
   worker->setSignatures(sig);
-  worker->setFilelist(smallFiles);
+  worker->setFilelist(largeFiles);
 
   worker->moveToThread(poolThread);
 
@@ -203,6 +198,7 @@ void StrategySelector::lazyScan()
   worker->setFilelist(smallFiles);
 
   worker->moveToThread(lazyThread);
+
 
   connect(worker, SIGNAL(error(QString)), this, SLOT(errorHandler(QString)));
   connect(lazyThread, SIGNAL(started()), worker, SLOT(process()));

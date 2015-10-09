@@ -47,9 +47,7 @@ void ThreadPoolStrategy::processSearchBuffer(QByteArray blob)
 
 void ThreadPoolStrategy::process()
 {
-  long cnt=0;
   QThreadPool *threadPool = QThreadPool::globalInstance();
-  //maxThreadCount didvider for signatures per thread
   foreach(processingFile, filenames)
     {
       if(wantStop)
@@ -57,9 +55,6 @@ void ThreadPoolStrategy::process()
           qDebug()<< "--- FINISHING";
           break;
         }
-      //qDebug()<<"--fSz: "<<it.fileInfo().size()<<", "<<it.filePath();
-
-      //emit progress(processingFile, 0);
       QFile file(processingFile);
       if(!file.open(QIODevice::ReadOnly))
         {
@@ -67,12 +62,26 @@ void ThreadPoolStrategy::process()
           continue;
         }
 
-      ////////////// mapping
+      QList< QList<QByteArray> > perThread;
+      int sigsz = signatures.size();
+      int offs = sigsz/maxThreadCount;
+
+      for(int i=0;i<maxThreadCount;i++)
+        {
+          perThread.push_back(signatures.mid(i*offs, offs));
+        }
+      if(sigsz%maxThreadCount!=0)
+        {
+          perThread[maxThreadCount-1] << signatures.mid(maxThreadCount*offs, offs);
+        }
+      //qDebug()<<perThread.count();
+      qDebug()<<QThread::currentThread()<< ", " <<file.fileName()<< ", " <<file.size();
       uchar *vbuf = file.map(0, file.size());
       for(int i=0; i<maxThreadCount;i++)
         {
+          //qDebug()<<perThread.at(i).count();
           RunnableSeeker *seeker= new RunnableSeeker();
-          seeker->setAll(processingFile,(char*)vbuf,file.size(),signatures);
+          seeker->setAll(processingFile,(char*)vbuf,file.size(),perThread.at(i));
           connect(seeker,SIGNAL(found(const QString&,const QByteArray&)),this,SLOT(signatureFound(const QString&,const QByteArray&)));
           threadPool->start(seeker);
         }
@@ -81,8 +90,7 @@ void ThreadPoolStrategy::process()
       file.close();
 
       //QThread::msleep(10);
-      if(++cnt%100==0)
-        qApp->processEvents();
+      qApp->processEvents();
     }
   threadPool->waitForDone();
   emit finished();
@@ -97,5 +105,6 @@ void ThreadPoolStrategy::stop()
 void ThreadPoolStrategy::signatureFound(const QString &name, const QByteArray &sign)
 {
   qDebug()<<"FOUND from ThreadPoolStrategy "<<name;
+  emit found(name, sign);
 }
 
