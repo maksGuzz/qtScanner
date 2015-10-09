@@ -32,70 +32,72 @@ StrategySelector::StrategySelector(QObject *parent) :
 
 void StrategySelector::readFileListAndSort(const QString &path)
 {
-  emit stringForUi("Scanning files");
+  //emit sendToUiString("Scanning files");
   qDebug()<<"read files "<<path;
-  int cnt=0;
-  QStringList mask;
-  mask << "*.tgz";
+  totalFiles = 0;
+  processedFiles = 0;
+  oldProgress = 0;
   QDirIterator it(path, QDir::Files | QDir::Hidden | QDir::NoSymLinks, QDirIterator::Subdirectories);
   while (it.hasNext())
     {
       it.next();
-      qDebug()<<it.fileName()<< ", "<<it.fileInfo().size();
+      //qDebug()<<it.fileName()<< ", "<<it.fileInfo().size();
       if(it.fileInfo().size()<=100 || it.filePath()=="") // smallest signature
         {
-          qDebug()<<"IGNORING";
+          //qDebug()<<"IGNORING";
           continue; //dir or ".." or "."
         }
       if(it.fileInfo().size() < 0x4000) // 16K
         {
-          qDebug()<<"SMALL";
+          //qDebug()<<"SMALL";
           //qDebug()<<"--fSz: "<<it.fileInfo().size()<<", "<<it.fileName() << " small";
           smallFiles << it.fileInfo().filePath();
         }
       else
         {
-          qDebug()<<"LARGE";
+          //qDebug()<<"LARGE";
           //qDebug()<<"--fSz: "<<it.fileInfo().size()<<", "<<it.fileName() << " LARGE!";
           largeFiles << it.fileInfo().filePath();
         }
 
       //emit stringForUi(it.fileInfo().fileName());
-      if(++cnt%100==0)
+      if(++totalFiles%100==0)
         qApp->processEvents();
     }
-  emit stringForUi("Scanning files end");
+  //emit sendToUiString("Scanning files end");
 }
 
-void StrategySelector::startScan()
+void StrategySelector::startScan(QString folder)
 {
+  path = folder;
   if(poolThread || lazyThread)
     {
-      emit stringForUi("busy both");
+      emit sendToUiString("busy both");
       return;
     }
   largeFiles.clear();
   smallFiles.clear();
-  emit stringForUi("Scanning directory");
+  emit sendToUiString("Scanning directory");
   qDebug()<<"read files";
   readFileListAndSort(path);
   qDebug()<<"start scan end";
-  emit stringForUi("Scanning directory end");
+  emit sendToUiString("Scanning directory end");
   qDebug()<<"Cnt: LARGE " << largeFiles.size() << ", small "<<smallFiles.count();
 
   if(largeFiles.size())
     {
       // run threaded strategy
-        emit stringForUi("Scanning LARGE fileList");
+        emit progressForUi(largeFiles.at(0), 0);
         threadedScan();
     }
   //return;
   if(smallFiles.size())
     {
       // run one thread strategy
-        emit stringForUi("Scanning SMALL fileList");
+        emit progressForUi(smallFiles.at(0), 0);
         lazyScan();
     }
+  emit startScanInfo(totalFiles);
   qDebug()<<"start scan end";
 }
 
@@ -113,10 +115,24 @@ void StrategySelector::errorHandler(QString error)
 
 void StrategySelector::scanProgress(QString file, int progress)
 {
-  QVariant v(progress);
-  QString tosend = QString("Processing %1, %2").arg(file).arg(v.toString());
-  qDebug()<<tosend;
-  emit stringForUi(tosend);
+  processedFiles++;
+  emit progressForUi(file, processedFiles);
+  /*if(progress == 100)
+    {
+      processedFiles++;
+      int newProgress = processedFiles/totalFiles*1000;
+      QVariant f(processedFiles);
+      QVariant n(newProgress);
+      QVariant o(oldProgress);
+        QString tosend = QString("Processing f: %1, old: %2, new: %3").arg(f.toString()).arg(o.toString()).arg(n.toString());
+        qDebug()<<tosend;
+      if(newProgress != oldProgress)
+        {
+          qDebug()<<"EMIT!";
+          oldProgress = processedFiles/totalFiles*10;
+          emit progressForUi("", processedFiles);
+        }
+    }*/
 }
 
 void StrategySelector::lazyScanEnded()
@@ -126,7 +142,7 @@ void StrategySelector::lazyScanEnded()
   /*lazyThread->quit();
   lazyThread->wait();*/
   lazyThread=NULL;
-  emit stringForUi("Scan fileList ended lazy");
+  emit sendToUiString("Scan fileList ended lazy");
 }
 
 void StrategySelector::poolScanEnded()
@@ -136,7 +152,7 @@ void StrategySelector::poolScanEnded()
   /*lazyThread->quit();
   lazyThread->wait();*/
   poolThread=NULL;
-  emit stringForUi("Scan fileList ended pool");
+  emit sendToUiString("Scan fileList ended pool");
 }
 
 void StrategySelector::sigFound(QString fname, QByteArray sig)
@@ -144,7 +160,14 @@ void StrategySelector::sigFound(QString fname, QByteArray sig)
   QString formatted = QString("%1 - %2").arg(signatures[sig]).arg(fname);
   qDebug()<<"            FOUND!!";
   qDebug()<<"                "<<formatted;
-  emit stringForUi(formatted);
+  //emit sendToUiString(formatted);
+}
+
+void StrategySelector::parseSignatures(QString signFilename)
+{
+  //
+  qDebug()<< "Parse filename"<<signFilename;
+  emit sendToUiString("Parsing...");
 }
 
 void StrategySelector::threadedScan()

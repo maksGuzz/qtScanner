@@ -11,8 +11,9 @@ public:
 
 signals:
   void exit();
-  void startScan();
+  void startScan(QString);
   void stopScan();
+  void parseSignatures(QString);
 
 public slots:
   void readCommand(QDataStream &in);

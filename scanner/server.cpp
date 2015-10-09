@@ -68,14 +68,40 @@
   qDebug()<<"socket error";
  }
 
- void Server::sendToUi(QString str)
+ void Server::sendToUiString(QString str)
  {
    //qDebug()<<"SRV Tx: "<<str;
      QByteArray block;
      QDataStream out(&block, QIODevice::WriteOnly);
      out.setVersion(QDataStream::Qt_4_0);
+     out << QString("info");
      out << str;
 
      clientConnection->write(block);
      clientConnection->flush();
+ }
+
+ void Server::sendToUiProgress(QString file, int perc)
+ {
+   QByteArray block;
+   QDataStream out(&block, QIODevice::WriteOnly);
+   out.setVersion(QDataStream::Qt_4_0);
+   out << QString("progress");
+   out << file;
+   out << perc;
+
+   clientConnection->write(block);
+   clientConnection->flush();
+ }
+
+ void Server::sendScanInfo(int numfiles)
+ {
+   QByteArray block;
+   QDataStream out(&block, QIODevice::WriteOnly);
+   out.setVersion(QDataStream::Qt_4_0);
+   out << QString("startscaninfo");
+   out << numfiles;
+
+   clientConnection->write(block);
+   clientConnection->flush();
  }

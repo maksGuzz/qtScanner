@@ -86,6 +86,7 @@ void ThreadPoolStrategy::process()
           threadPool->start(seeker);
         }
       threadPool->waitForDone();
+      emit progress(processingFile, 100);
       file.unmap(vbuf);
       file.close();
 

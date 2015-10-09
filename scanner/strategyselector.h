@@ -14,17 +14,20 @@ public:
   void readFileListAndSort(const QString &path);
 
 signals:
-  void stringForUi(QString msg);
+  void sendToUiString(QString msg);
   void stopWorker();
+  void progressForUi(QString,int);
+  void startScanInfo(int);
 
 public slots:
-  void startScan();
+  void startScan(QString);
   void stopScan();
   void errorHandler(QString error);
   void scanProgress(QString, int);
   void lazyScanEnded();
   void poolScanEnded();
   void sigFound(QString, QByteArray);
+  void parseSignatures(QString);
 
 private:
   //long long dirSize(const QString str);
@@ -39,7 +42,9 @@ private:
   QThread* lazyThread;
   QThread* poolThread;
   QString path;
-
+  int totalFiles;
+  int processedFiles;
+  int oldProgress;
 };
 
 #endif // STRATEGYSELECTOR_H

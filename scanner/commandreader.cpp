@@ -14,9 +14,12 @@ void CommandReader::readCommand(QDataStream &in)
   in >> command;
 
   qDebug()<< "Command: " << command;
-  if(command=="loadsignatures")
+  if(command=="parsesignatures")
     {
-      qDebug()<<"Loading";
+      QString filename;
+      in >> filename;
+      qDebug()<<"Loading"<<filename;
+      emit parseSignatures(filename);
     }
   if(command=="setscanoptions")
     {
@@ -25,7 +28,9 @@ void CommandReader::readCommand(QDataStream &in)
   if(command=="start")
     {
       qDebug()<<"startscan";
-      emit startScan();
+      QString folder;
+      in >> folder;
+      emit startScan(folder);
     }
   if(command=="stop")
     {

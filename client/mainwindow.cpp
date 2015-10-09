@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include <QDebug>
 #include <QMessageBox>
+#include <QApplication>
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
@@ -10,12 +11,28 @@ MainWindow::MainWindow(QWidget *parent) :
 {
   ui->setupUi(this);
   socket = new QLocalSocket(this);
+  connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
+  connect(socket, SIGNAL(error(QLocalSocket::LocalSocketError)),
+          this, SLOT(displayError(QLocalSocket::LocalSocketError)));
+  connect(socket, SIGNAL(connected()), this, SLOT(parserReady()));
+  connect(socket, SIGNAL(disconnected()), this, SLOT(parserDown()));
+  ui->pathToScanEdit->setText("/home/mguzeev/Downloads");
   connectServer();
 }
 
 MainWindow::~MainWindow()
 {
   delete ui;
+}
+
+void MainWindow::parserReady()
+{
+  ui->listWidget->addItem("Parser ready");
+}
+
+void MainWindow::parserDown()
+{
+  ui->listWidget->addItem("Parser Down");
 }
 
 void MainWindow::connectServer()
@@ -31,14 +48,7 @@ void MainWindow::readData()
 
   if (in.atEnd())
       return;
-  while(!in.atEnd())
-  {
-    QString resp;
-    in >> resp;
-    qDebug()<<resp;
-
-    ui->listWidget->addItem(resp);
-  }
+  parseResponse(in);
 }
 
 void MainWindow::sendCommand(QByteArray cmd)
@@ -94,6 +104,7 @@ void MainWindow::on_pushButton_3_clicked()
   QDataStream out(&block, QIODevice::WriteOnly);
   out.setVersion(QDataStream::Qt_4_0);
   out << QString("start");
+  out << ui->pathToScanEdit->text();
   sendCommand(block);
 }
 
@@ -119,4 +130,47 @@ void MainWindow::on_pushButton_5_clicked() //parse signatures
     out << QString("parsesignatures");
     out << ui->signturesLineEdit->text();
     sendCommand(block);
+}
+
+void MainWindow::parseResponse(QDataStream &in)
+{
+  while(!in.atEnd())
+  {
+    QString resp;
+    in >> resp;
+    //qDebug()<<resp;
+    if(resp == "startscaninfo")
+      {
+        int max;
+        in >> max;
+        ui->progressBar->setMaximum(max);
+        ui->progressBar->setMinimum(0);
+        ui->progressBar->setValue(0);
+        qDebug()<<resp<<max;
+        continue;
+      }
+    if(resp == "progress")
+      {
+        int progress;
+        QString file;
+        in >> file;
+        in >> progress;
+        QVariant v(progress);
+        ui->listWidget->addItem(v.toString()+file);
+        ui->progressBar->setValue(progress);
+        qDebug()<<resp<<file<<progress;
+        continue;
+      }
+    if(resp == "info")
+      {
+        QString str;
+        in >> str;
+        //qDebug()<<resp<<str;
+        ui->listWidget->addItem(str);
+      }
+    QListWidgetItem *item = new QListWidgetItem(resp, ui->listWidget);
+    //item->setBackgroundColor(QColor("red"));
+    ui->listWidget->scrollToItem(item);
+    qApp->processEvents();
+  }
 }

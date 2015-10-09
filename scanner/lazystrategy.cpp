@@ -59,9 +59,10 @@ void LazyStrategy::process()
           continue;
         }
 
-      //emit progress(processingFile, signatures.size());
+      //emit progress(processingFile, 0);
       QByteArray blob = file.readAll();
       processSearchBuffer(blob);
+      emit progress(processingFile, 100);
 
       file.close();
 
@@ -69,7 +70,7 @@ void LazyStrategy::process()
       if(++cnt%10==0)
         qApp->processEvents();
     }
-  qApp->processEvents();
+  //qApp->processEvents();
   emit finished();
 }
 

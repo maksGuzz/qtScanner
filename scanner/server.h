@@ -17,7 +17,9 @@
      void uiDisonnected();
      void socketError();
 
-     void sendToUi(QString str);
+     void sendToUiString(QString str);
+     void sendToUiProgress(QString file, int perc);
+     void sendScanInfo(int);
 
      void uiData();
  private:

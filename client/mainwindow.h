@@ -17,6 +17,8 @@ public:
   ~MainWindow();
 
 private slots:
+  void parserReady();
+  void parserDown();
   void connectServer();
   void readData();
   void displayError(QLocalSocket::LocalSocketError socketError);
@@ -32,6 +34,7 @@ private slots:
   void on_pushButton_5_clicked();
 
 private:
+  void parseResponse(QDataStream &in);
   Ui::MainWindow *ui;
   QLocalSocket *socket;
 };
