@@ -11,7 +11,6 @@ public:
   explicit ThreadPoolStrategy(QObject *parent = 0);
   void setSignatures(QList<QByteArray> &sig);
   void setFilelist(QList<QString> &files);
-  void processSearchBuffer(QByteArray blob);
 
 signals:
   void progress(QString, int);

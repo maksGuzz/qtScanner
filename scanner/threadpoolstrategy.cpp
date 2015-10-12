@@ -27,24 +27,6 @@ void ThreadPoolStrategy::setSignatures(QList<QByteArray> &sig)
   signatures = sig;
 }
 
-void ThreadPoolStrategy::processSearchBuffer(QByteArray blob)
-{
-  //TODO Use separated class Algorythm. Depending on number of signatures and moon's phase
-  QByteArray signature;
-  int cnt = signatures.size();
-  foreach(signature, signatures)
-    {
-      //emit progress(processingFile, cnt--);
-      if(blob.indexOf(signature) != -1)
-        {
-          //found!
-          emit found(processingFile, signature);
-        }
-      if(cnt%100==0)
-        qApp->processEvents();
-    }
-}
-
 void ThreadPoolStrategy::process()
 {
   QThreadPool *threadPool = QThreadPool::globalInstance();

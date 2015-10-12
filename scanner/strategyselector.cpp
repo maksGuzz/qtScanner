@@ -168,6 +168,29 @@ void StrategySelector::parseSignatures(QString signFilename)
   //
   qDebug()<< "Parse filename"<<signFilename;
   emit sendToUiString("Parsing...");
+  QFile file(signFilename);
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+      emit sendToUiString("Error opening signtures file");
+      return;
+    }
+
+  while (!file.atEnd()) {
+      QByteArray line = file.readLine();
+      //01ABEDFF55.{ab306a70-0fd2-4b4b-84fe-f9ebd899d90f}
+      //signatures.insert(QByteArray::fromHex("c9ff30006893"), "APK");
+      qDebug()<<line;
+      QList<QByteArray> parts= line.split('.');
+      qDebug()<<parts;
+      if(parts.at(0).isEmpty() || parts.at(1).isEmpty())
+        {
+          emit sendToUiString("Error parsing signtures file");
+          signatures.clear();
+          return;
+        }
+      signatures.insert(QByteArray::fromHex(parts.at(0)), parts.at(1));
+  }
+  emit sendToUiString("Signtures loaded");
 }
 
 void StrategySelector::threadedScan()

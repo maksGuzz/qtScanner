@@ -35,7 +35,8 @@ void RunnableSeeker::run()
             {
               emit found(filename, signature);
               qDebug()<<"---------------------------------------- FOUND! "<<filename;
-              filename.remove(signature);
+              signatures.removeAll(signature);
+              break;
             }
         }
     }
